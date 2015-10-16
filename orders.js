@@ -14,25 +14,33 @@ casper.options.waitTimeout = 10000;
 var stepIndex = 0, url = "https://www.amazon.com/gp/css/order-history?ie=UTF8&ref_=nav_youraccount_orders&";
 var currentPage = 1;
 var orders = [];
-var user = 'manol.trendafilov+amazon24@gmail.com', pass = 'manol12345';
+var user = '', pass = '';
 var currentLink = 1;
 var config = {};
-
+var orderLinks = [];
 // load config
 
 configFile = fs.read('config.json');
+config = JSON.parse(configFile);
 
+user = config.email;
+pass = config.pass;
 
 function processPage() {
   
-    currentLink = 1;
+    //currentLink = 1;
     this.capture('page'+ currentPage++ +'.png');
+    
     
     processDetails();
     
-    if(!this.exists("ul.a-pagination li.a-last a"))
+    if(!this.exists("ul.a-pagination li.a-last a") || currentPage > 4)
     {
-         return terminate.call(casper);
+         fetchData();
+         casper.then(function(){
+             return terminate.call(casper);
+         });
+         
     } 
     
     this.then(function() {
@@ -44,23 +52,39 @@ function processPage() {
 
 function processDetails() 
 {
-    var orderLinks = document.querySelectorAll("#ordersContainer .actions a.a-link-normal[href*='order-details']");
-    
-    this.start(orderLinks[currentLink], function() {
+   orderLinks = casper.evaluate(getLinks).concat(orderLinks);       
+   
+   
+    /*casper.thenOpen(orderLinks[currentLink].href, function() {
+        console.log("------------------ then open ------------------");
         this.echo(this.getTitle());
     });
+    */
 }
 
-function check() 
-{    
-    if(links[currentLink])
-    {
-        processDetails(orderLinks[currentLink]);
-        currentLink++;    
-    }   
+function fetchData()
+{
+    var current = 0;
+    var end = orderLinks.length;
     
-    this.run(check);
+    for(;current < end;)
+    {
+        console.log(current);
+        
+       casper.thenOpen(orderLinks[current], function(current) {
+                this.capture('order-details' + current +'.png');
+        });
+        current++;
+    }
 }
+
+function getLinks() {
+   var orderLinks = document.querySelectorAll("#ordersContainer .actions a.a-link-normal[href*='order-details']");
+   return Array.prototype.map.call(orderLinks, function(element) {
+       return element.href;
+   });
+}
+
 
 var getSelectedPage = function() {
     var el = document.querySelector("ul[class='a-pagination'] li[class='a-selected'] a").textContent;
@@ -81,11 +105,7 @@ casper.start(url, function() {
     this.capture('login.png');
 });
 
-casper.then(function() {
-  config = JSON.parse(configFile);
-});
 
- 
 casper.waitForSelector('ul.a-pagination li.a-last a', processPage, terminate)
  
  
