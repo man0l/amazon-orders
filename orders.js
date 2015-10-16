@@ -29,7 +29,7 @@ pass = config.pass;
 function processPage() {
   
     //currentLink = 1;
-    this.capture('page'+ currentPage++ +'.png');
+    this.capture('screenshots/page'+ currentPage++ +'.png');
     
     
     processDetails();
@@ -71,8 +71,8 @@ function fetchData()
     {
         console.log(current);
         
-       casper.thenOpen(orderLinks[current], function(current) {
-                this.capture('order-details' + current +'.png');
+       casper.thenOpen(orderLinks[current], function() {
+                this.capture('screenshots/order-details' + current +'.png');
         });
         current++;
     }
@@ -102,7 +102,7 @@ casper.start(url, function() {
         'password': pass
     }, true);
     
-    this.capture('login.png');
+    this.capture('screenshots/login.png');
 });
 
 
