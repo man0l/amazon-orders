@@ -38,7 +38,7 @@ function processPage() {
     
     if(!this.exists("ul.a-pagination li.a-last a") || currentPage > 2)
     {
-         fetchData();
+         fetchData(); // this won't take the last page data!!
          casper.then(function(){
              return terminate.call(casper);
          });
